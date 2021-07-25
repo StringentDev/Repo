@@ -1,1 +1,1 @@
-run="yarn start"
+run="node app.js"

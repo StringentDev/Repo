@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title id="title">Loading...</title>
+    <link href="https://medusa.stringentdev.repl.co/medusa.css" rel="stylesheet" type="text/css" />
+    <link href="https://medusa.stringentdev.repl.co/theme.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+  	<nav class="topbar square">
+			<div class="link" style="padding-left: 55px">	
+				<img onclick="loadPage('./app/.html')" src="public/images/logo.png"></img>
+				<a>Packages</a>
+			</div>
+  	</nav>
+		<div id="content">
+			
+		</div>
+    <script type="module" src="public/js/main.js"></script>
+    <script>
+    	if ('serviceWorker' in navigator) {
+				window.addEventListener('load', function() {
+					navigator.serviceWorker.register('/public/js/worker.js').then(function(registration) {
+						// Registration was successful
+						console.log('ServiceWorker registration successful with scope: ', registration.scope);
+					}, function(err) {
+						// registration failed :(
+						console.log('ServiceWorker registration failed: ', err);
+					});
+				});
+			}
+    	const spawnIcons = () => {
+    		icons = document.querySelectorAll('icon');
+    		icons.forEach(async (icon) => {
+    			name = icon.getAttribute("name")
+    			if (icon.hasAttribute("filled")) {
+    				icon.innerHTML = `<svg width="${icon.getAttribute("width")}" viewBox="0 0 ${icon.getAttribute("width").replace("px", "")} ${icon.getAttribute("width").replace("px", "")}" xmlns="http://www.w3.org/2000/svg"><image width="${icon.getAttribute("width")}" xlink:href="https://fluenticons.co/filled_icons/${name}.svg"/></svg>`
+    			} else {
+    				icon.innerHTML = `<svg width="${icon.getAttribute("width")}" viewBox="0 0 ${icon.getAttribute("width").replace("px", "")} ${icon.getAttribute("width").replace("px", "")}" xmlns="http://www.w3.org/2000/svg"><image width="${icon.getAttribute("width")}" xlink:href="https://fluenticons.co/regular_icons/${name}.svg"/></svg>`
+    				} 	
+    		}); 
+    	}
+    	
+    	function sleep(ms) {
+				return new Promise(resolveFunc => setTimeout(resolveFunc, ms));
+			}
+			var socket = false;
+			loadURL = url => {
+				if (url == 'index') {
+					window.history.pushState(`Vera`, `Vera`, `/`);
+					document.getElementById('title').innerText = `Vera`;
+				} else {
+					window.history.pushState(`Vera`, `Vera`, `/${url}`);
+					document.getElementById('title').innerText = `Vera - ${url}`;
+				}
+				loadPage(`./app/${url}.html`);
+			};
+			
+			var tag = document.createElement("div");
+			tag.innerHTML = `<div id="load_indicator" class="progress" style="--progress: 0%; --primary: var(--primary-accent-2); width: 100%; position: fixed; top: 0px; left: 0px;"><div id="bar" class="indeterminate"></div></div>`
+			document.body.appendChild(tag)
+			function sleep(ms) {
+				return new Promise(resolveFunc => setTimeout(resolveFunc, ms));
+			}
+			
+			loadPage = async url => {
+				document.getElementById('load_indicator').style.visibility = 'visible';
+				document.getElementById('load_indicator').style.opacity = '1';
+				var xmlhttp = new XMLHttpRequest();
+				xmlhttp.onreadystatechange = async function() {
+					if (this.readyState == 4) {
+						document.getElementById('content').innerHTML = this.responseText;
+						spawnIcons()
+						await sleep(300);
+						document.getElementById(
+							'load_indicator'
+						).style = `--progress: 0%; --primary: var(--primary-accent-2); width: 100%; position: fixed; top: 0px; left: 0px; opacity: 0;`;
+					}
+				};
+				xmlhttp.onprogress = async function(event) {
+					prg = (event.loaded / event.total) * 100;
+					document.getElementById(
+						'load_indicator'
+					).style = `--progress: ${prg}%; --primary: var(--primary-accent-2); width: 100%; position: fixed; top: 0px; left: 0px; opacity: 1`;
+				};
+			
+				await xmlhttp.open('GET', url, true);
+				await xmlhttp.send();
+			};
+			
+			loadPage('./app/<%= page %>.html');
+			if ('<%= page %>' == 'app/nIndex') {
+				document.getElementById('title').innerText = `Vera`;
+			} else {
+				document.getElementById('title').innerText = `Vera - ${'<%= page %>'.replace('/app/')}`;
+			}
+
+    </script>
+  </body>
+</html>
